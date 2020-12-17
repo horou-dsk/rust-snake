@@ -9,6 +9,7 @@ pub struct Game {
     move_time: f32,
     food: Option<[i32; 2]>,
     pub score: u32,
+    pub over: bool,
 }
 
 impl Game {
@@ -19,7 +20,16 @@ impl Game {
             move_time: 0.0,
             food: None,
             score: 0,
+            over: false,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.snake = Snake::new(10, 10);
+        self.clear();
+        self.over = false;
+        self.food = None;
+        self.score = 0;
     }
 
     fn clear(&mut self) {
@@ -33,15 +43,24 @@ impl Game {
         }
     }
 
-    pub fn draw(&mut self) {
+    pub fn frame(&mut self) {
+        if self.over {
+            return
+        }
         if self.move_time < 1.0 {
             self.move_time += self.snake.speed;
         } else {
             self.move_time = 0.0;
             self.moving();
         }
+    }
+
+    fn draw(&mut self) {
         self.clear();
-        for [x, y] in self.snake.body.iter() {
+        let [x, y] = &self.snake.body[0];
+        let i = x + 1 + (y + 1) * MAP_WIDTH as i32;
+        self.gfx[i as usize] = 4;
+        for [x, y] in self.snake.body[1..].iter() {
             let i = x + 1 + (y + 1) * MAP_WIDTH as i32;
             self.gfx[i as usize] = 2;
         }
@@ -56,6 +75,12 @@ impl Game {
             Some([x, y]) => {
                 self.snake.moving([x, y]);
                 let head = &self.snake.body[0];
+                for i in 1..self.snake.body.len() {
+                    if *head == self.snake.body[i] {
+                        self.over = true;
+                        break
+                    }
+                }
                 if head[0] == x && head[1] == y {
                     self.score += 1;
                     self.place_food();
@@ -66,10 +91,14 @@ impl Game {
                 self.place_food();
             }
         }
+        self.draw();
     }
 
     fn place_food(&mut self) {
-        let [x, y] = [(rand::random::<u8>() % (MAP_WIDTH - 2) as u8) as i32, (rand::random::<u8>() % (MAP_HEIGHT - 2) as u8) as i32];
+        let [x, y] = [
+            (rand::random::<u8>() % (MAP_WIDTH - 2) as u8) as i32,
+            (rand::random::<u8>() % (MAP_HEIGHT - 2) as u8) as i32
+        ];
         for [i, j] in self.snake.body.iter() {
             if *i == x && *j == y {
                 return self.place_food()
@@ -79,6 +108,9 @@ impl Game {
     }
 
     fn turn(&mut self, direction: Direction) {
+        if self.over {
+            return
+        }
         self.move_time = 0.0;
         self.snake.direction = direction;
         self.moving();

@@ -63,3 +63,9 @@ impl Snake {
         }
     }
 }
+
+impl Drop for Snake {
+    fn drop(&mut self) {
+        println!("蛇被释放了");
+    }
+}

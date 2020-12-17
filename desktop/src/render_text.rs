@@ -5,7 +5,7 @@ use std::path::Path;
 use sdl2::render::{WindowCanvas, TextureCreator, TextureQuery};
 use sdl2::rect::Rect;
 
-pub fn draw_text(text: &Text, ttf_context: &Sdl2TtfContext, canvas: &mut WindowCanvas) {
+pub fn draw_text(text: &mut Text, ttf_context: &Sdl2TtfContext, canvas: &mut WindowCanvas) {
     let dir = env::var("windir").unwrap() + "\\Fonts\\PINGFANG REGULAR.TTF";
     let path = Path::new(&dir);
     let mut font = ttf_context.load_font(path, text.font_size).unwrap();
@@ -21,6 +21,8 @@ pub fn draw_text(text: &Text, ttf_context: &Sdl2TtfContext, canvas: &mut WindowC
         .create_texture_from_surface(&surface)
         .map_err(|e| e.to_string()).unwrap();
     let TextureQuery { width, height, .. } = texture.query();
+    text.width = width;
+    text.height = height;
     let target = rect!(text.x, text.y, width, height);
 
     canvas.copy(&texture, None, target).unwrap();
@@ -55,6 +57,12 @@ impl Text {
     pub fn set_position(&mut self, x: i32, y: i32) -> &mut Text {
         self.x = x;
         self.y = y;
+        self
+    }
+
+    pub fn set_center(&mut self, width: u32, height: u32) -> &mut Text {
+        self.x = (width / 2 - self.width / 2) as i32;
+        self.y = (height / 2 - self.height / 2) as i32;
         self
     }
 }
