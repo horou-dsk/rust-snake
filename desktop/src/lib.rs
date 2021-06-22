@@ -5,6 +5,7 @@ pub mod game_loop;
 pub mod game;
 pub mod render_text;
 pub mod colors;
+pub mod a_star;
 
 pub const MAP_WIDTH: usize = 32;
 pub const MAP_HEIGHT: usize = 32;

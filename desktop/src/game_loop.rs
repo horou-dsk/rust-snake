@@ -1,9 +1,7 @@
-use sdl2::render::{WindowCanvas, TextureQuery};
+use sdl2::render::{WindowCanvas};
 use sdl2::pixels::Color;
 use sdl2::Sdl;
 use chrono::Local;
-use std::env;
-use std::path::Path;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;

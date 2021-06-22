@@ -1,29 +1,25 @@
 use crate::{MAP_WIDTH, MAP_HEIGHT};
 
-#[derive(PartialOrd, PartialEq)]
+#[derive(PartialOrd, PartialEq, Debug)]
 pub enum Direction {
     Left,
     Right,
-    Top,
-    Bottom,
+    Up,
+    Down,
 }
 
 pub struct Snake {
     pub body: Vec<[i32; 2]>,
-    width: u32,
-    height: u32,
     pub direction: Direction,
     pub speed: f32,
 }
 
 impl Snake {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new() -> Self {
         Snake {
             body: vec![[15, 15], [14, 15], [13, 15]],
-            width,
-            height,
             direction: Direction::Right,
-            speed: 0.04,
+            speed: 0.05,
         }
     }
 
@@ -41,13 +37,13 @@ impl Snake {
             Direction::Right => {
                 head[0] = (head[0] + 1) % map_width as i32;
             }
-            Direction::Top => {
+            Direction::Up => {
                 head[1] -= 1;
                 if head[1] < 0 {
                     head[1] = map_height as i32 - 1;
                 }
             }
-            Direction::Bottom => {
+            Direction::Down => {
                 head[1] = (head[1] + 1) % map_height as i32;
             }
         }

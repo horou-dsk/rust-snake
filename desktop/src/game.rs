@@ -2,6 +2,8 @@ use crate::snake::{Snake, Direction};
 use crate::{MAP_WIDTH, MAP_HEIGHT};
 use sdl2::keyboard::Keycode;
 use std::option::Option::Some;
+use std::cmp::Ordering;
+use crate::a_star::a_star_search;
 
 pub struct Game {
     snake: Snake,
@@ -10,26 +12,31 @@ pub struct Game {
     food: Option<[i32; 2]>,
     pub score: u32,
     pub over: bool,
+    plans: Vec<[i32; 2]>,
+    auto_plan: bool,
 }
 
 impl Game {
     pub fn new() -> Self {
         Self {
-            snake: Snake::new(10, 10),
+            snake: Snake::new(),
             gfx: [0; MAP_WIDTH * MAP_HEIGHT],
             move_time: 0.0,
             food: None,
             score: 0,
             over: false,
+            plans: Vec::new(),
+            auto_plan: false,
         }
     }
 
     pub fn reset(&mut self) {
-        self.snake = Snake::new(10, 10);
+        self.snake = Snake::new();
         self.clear();
         self.over = false;
         self.food = None;
         self.score = 0;
+        self.plans.clear();
     }
 
     fn clear(&mut self) {
@@ -71,6 +78,24 @@ impl Game {
     }
 
     fn moving(&mut self) {
+        let head = self.snake.body[0];
+        if let Some(next_pos) = self.plans.pop() {
+            match (next_pos[0].cmp(&head[0]), next_pos[1].cmp(&head[1])) {
+                (Ordering::Greater, _) => {
+                    self.snake.direction = Direction::Right
+                }
+                (Ordering::Less, _) => {
+                    self.snake.direction = Direction::Left
+                }
+                (_, Ordering::Greater) => {
+                    self.snake.direction = Direction::Down
+                }
+                (_, Ordering::Less) => {
+                    self.snake.direction = Direction::Up
+                }
+                _ => {}
+            }
+        }
         match self.food {
             Some([x, y]) => {
                 self.snake.moving([x, y]);
@@ -83,6 +108,7 @@ impl Game {
                 }
                 if head[0] == x && head[1] == y {
                     self.score += 1;
+                    self.snake.speed += 0.001;
                     self.place_food();
                     self.move_time = 0.0;
                 }
@@ -91,6 +117,9 @@ impl Game {
                 self.place_food();
             }
         }
+        // let now = std::time::Instant::now();
+        self.plan();
+        // println!("{:?}", now.elapsed());
         self.draw();
     }
 
@@ -105,6 +134,7 @@ impl Game {
             }
         }
         self.food = Some([x, y]);
+        // self.plan();
     }
 
     fn turn(&mut self, direction: Direction) {
@@ -125,13 +155,13 @@ impl Game {
                 }
             }
             Keycode::Up => {
-                if *direction != Direction::Bottom {
-                    self.turn(Direction::Top);
+                if *direction != Direction::Down {
+                    self.turn(Direction::Up);
                 }
             }
             Keycode::Down => {
-                if *direction != Direction::Top {
-                    self.turn(Direction::Bottom);
+                if *direction != Direction::Up {
+                    self.turn(Direction::Down);
                 }
             }
             Keycode::Left => {
@@ -139,7 +169,20 @@ impl Game {
                     self.turn(Direction::Left);
                 }
             },
+            Keycode::A => {
+                self.auto_plan = !self.auto_plan;
+                if !self.auto_plan {
+                    self.plans.clear();
+                }
+                self.plan();
+            }
             _ => {}
+        }
+    }
+
+    fn plan(&mut self) {
+        if self.auto_plan {
+            self.plans = a_star_search(&self.snake.body[1..], self.snake.body[0], self.food.unwrap());
         }
     }
 }

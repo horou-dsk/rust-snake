@@ -2,11 +2,15 @@ use sdl2::pixels::Color;
 use sdl2::ttf::{FontStyle, Sdl2TtfContext};
 use std::env;
 use std::path::Path;
-use sdl2::render::{WindowCanvas, TextureCreator, TextureQuery};
+use sdl2::render::{WindowCanvas, TextureQuery};
 use sdl2::rect::Rect;
 
 pub fn draw_text(text: &mut Text, ttf_context: &Sdl2TtfContext, canvas: &mut WindowCanvas) {
-    let dir = env::var("windir").unwrap() + "\\Fonts\\PINGFANG REGULAR.TTF";
+    let windir = env::var("windir").unwrap();
+    let mut dir = format!("{}\\Fonts\\PINGFANG REGULAR.TTF", windir);
+    if !Path::new(&dir).exists() {
+        dir = windir + "\\Fonts\\msyh.ttc";
+    }
     let path = Path::new(&dir);
     let mut font = ttf_context.load_font(path, text.font_size).unwrap();
     font.set_style(text.font_style);
