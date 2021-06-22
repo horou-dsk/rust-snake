@@ -175,7 +175,8 @@ impl Game {
                     self.plans.clear();
                 }
                 self.plan();
-            }
+            },
+            Keycode::W => self.snake.speed += 0.1,
             _ => {}
         }
     }
